@@ -11,7 +11,9 @@ const GetTodoMiddleware = (Todo) => (req, res, next) => {
     .then((todo) => {
       if (!todo) return res.status(404).json({ error: 'Todo not exists' });
 
-      res.json({ todo });
+      req.todoId = todoId;
+      req.todo = todo;
+      next();
     })
     .catch(err => res.status(400).send({ error: 'error to find todo' }));
 

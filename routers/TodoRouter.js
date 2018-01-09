@@ -32,6 +32,18 @@ const TodoRouter = (User, Todo) => {
           todos,
         });
       }).catch(err => res.status(400).send(err));
+    })
+    .get('/:todoId', (req, res) => {
+      const { todo } = req;
+
+      res.json({ todo });
+    })
+    .delete('/:todoId', (req, res) => {
+      const { todoId } = req;
+
+      Todo.findByIdAndRemove(todoId).then((todo) => {
+        res.json({ message: 'deleted successfully', todo });
+      }).catch(err => res.status(400).send(err));
     });
 
   return router;
