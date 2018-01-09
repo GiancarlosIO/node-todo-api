@@ -2,11 +2,14 @@ const express = require('express');
 
 // middlewares
 const AuthenticationMiddleware = require('../middlewares/auth/AuthenticateMiddleware');
+const GetTodoMiddleware = require('../middlewares/todo/GetTodoMiddleware');
 
 const TodoRouter = (User, Todo) => {
   const router = express.Router();
 
   // router.use('/', AuthenticationMiddleware(User));
+  // middleware to find the todo
+  router.use('/:todoId', GetTodoMiddleware(Todo));
 
   router
     .post('/', (req, res) => {
