@@ -44,6 +44,26 @@ const TodoRouter = (User, Todo) => {
       Todo.findByIdAndRemove(todoId).then((todo) => {
         res.json({ message: 'deleted successfully', todo });
       }).catch(err => res.status(400).send(err));
+    })
+    .patch('/:todoId', (req, res) => {
+      const { todoId, todo, body } = req;
+
+      if (body._id) delete body._id;
+
+      if (body.completed) {
+        body.completedAt = new Date().getTime();
+      } else {
+        body.completed = false;
+        body.completedAt = null;
+      }
+
+      for (p in body) {
+        todo[p] = body[p];
+      }
+
+      todo.save().then((todo) => {
+        res.json(todo);
+      }).catch(err => res.status(400).send(err));
     });
 
   return router;
