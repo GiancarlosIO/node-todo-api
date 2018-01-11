@@ -62,7 +62,7 @@ const TodoRouter = (User, Todo) => {
       }
 
       todo.save().then((todo) => {
-        res.json(todo);
+        res.json({ todo });
       }).catch(err => res.status(400).send(err));
     });
 

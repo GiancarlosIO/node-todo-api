@@ -19,8 +19,10 @@ const todos = [
   {
     _id: new ObjectId(),
     text: 'second tests todo',
-  }
-]
+    completed: true,
+    completedAt: 333,
+  },
+];
 
 beforeEach((done) => {
   Todo.remove({}).then(() => {
@@ -157,6 +159,35 @@ describe('DELETE /api/todos/:id', () => {
       .expect(400)
       .expect(({ body: { error } }) => {
         expect(error).toBe('id is invalid');
+      })
+      .end(done);
+  });
+});
+
+
+describe('PATCH /api/todos/:api', () => {
+  it('should update the todo succesfully', (done) => {
+    request(app)
+      .patch(`/api/todos/${todos[0]._id.toHexString()}`)
+      .send({ completed: true, text: 'updated text' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe('updated text');
+        expect(res.body.todo.completed).toBe(true);
+        expect(typeof res.body.todo.completedAt).toBe('number');
+      })
+      .end(done);
+  });
+
+  it ('should clear completed and completedAt when todo is not completed', (done) => {
+    request(app)
+      .patch(`/api/todos/${todos[1]._id.toHexString()}`)
+      .send({ completed: false, text: 'text updated' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe('text updated');
+        expect(res.body.todo.completed).toBe(false);
+        expect(res.body.todo.completedAt).toBe(null);
       })
       .end(done);
   });
