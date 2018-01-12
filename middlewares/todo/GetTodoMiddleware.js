@@ -1,13 +1,16 @@
 const { ObjectId } = require('mongodb');
 
 const GetTodoMiddleware = (Todo) => (req, res, next) => {
-  const { params: { todoId } } = req;
+  const { user, params: { todoId } } = req;
 
   if (!ObjectId.isValid(todoId)) {
     return res.status(400).send({ error: 'id is invalid' });
   }
 
-  Todo.findById(todoId)
+  Todo.findOne({
+    _id: todoId,
+    _creator: user._id,
+  })
     .then((todo) => {
       if (!todo) return res.status(404).json({ error: 'Todo not exists' });
 

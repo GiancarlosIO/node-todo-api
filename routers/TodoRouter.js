@@ -7,7 +7,8 @@ const GetTodoMiddleware = require('../middlewares/todo/GetTodoMiddleware');
 const TodoRouter = (User, Todo) => {
   const router = express.Router();
 
-  // router.use('/', AuthenticationMiddleware(User));
+  // middleware to get the current user
+  router.use('/', AuthenticationMiddleware(User));
   // middleware to find the todo
   router.use('/:todoId', GetTodoMiddleware(Todo));
 
@@ -17,7 +18,7 @@ const TodoRouter = (User, Todo) => {
 
       const todo = new Todo({
         text: text,
-        // _creator: user._id,
+        _creator: user._id,
       });
 
       todo.save().then((todo) => {
@@ -27,7 +28,7 @@ const TodoRouter = (User, Todo) => {
       });
     })
     .get('/', (req, res) => {
-      Todo.find().then((todos) => {
+      Todo.find({ _creator: req.user._id }).then((todos) => {
         res.json({
           todos,
         });
@@ -41,7 +42,7 @@ const TodoRouter = (User, Todo) => {
     .delete('/:todoId', (req, res) => {
       const { todoId } = req;
 
-      Todo.findByIdAndRemove(todoId).then((todo) => {
+      Todo.findOneAndRemove(todoId).then((todo) => {
         res.json({ message: 'deleted successfully', todo });
       }).catch(err => res.status(400).send(err));
     })
