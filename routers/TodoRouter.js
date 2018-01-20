@@ -13,7 +13,7 @@ const TodoRouter = (User, Todo) => {
   router.use('/:todoId', GetTodoMiddleware(Todo));
 
   router
-    .post('/', (req, res) => {
+    .post('/', async (req, res) => {
       const { user, body: { text } } = req;
 
       const todo = new Todo({
@@ -21,32 +21,40 @@ const TodoRouter = (User, Todo) => {
         _creator: user._id,
       });
 
-      todo.save().then((todo) => {
+      try {
+        await todo.save();
         res.status(201).json(todo);
-      }, (e) => {
+      } catch (e) {
         res.status(400).send(e);
-      });
+      }
     })
-    .get('/', (req, res) => {
-      Todo.find({ _creator: req.user._id }).then((todos) => {
-        res.json({
-          todos,
-        });
-      }).catch(err => res.status(400).send(err));
+    .get('/', async (req, res) => {
+      try {
+        const todos = await Todo.find({ _creator: req.user._id })
+
+        res.json({ todos });
+      } catch (e) {
+        res.status(400).send(e)
+      }
     })
     .get('/:todoId', (req, res) => {
       const { todo } = req;
 
       res.json({ todo });
     })
-    .delete('/:todoId', (req, res) => {
+    .delete('/:todoId', async (req, res) => {
       const { todoId } = req;
 
-      Todo.findOneAndRemove(todoId).then((todo) => {
+      try {
+        const todo = await Todo.findOneAndRemove(todoId);
+
         res.json({ message: 'deleted successfully', todo });
-      }).catch(err => res.status(400).send(err));
+      } catch (e) {
+        res.status(400).send(err)
+      }
+
     })
-    .patch('/:todoId', (req, res) => {
+    .patch('/:todoId', async (req, res) => {
       const { todoId, todo, body } = req;
 
       if (body._id) delete body._id;
@@ -62,9 +70,13 @@ const TodoRouter = (User, Todo) => {
         todo[p] = body[p];
       }
 
-      todo.save().then((todo) => {
-        res.json({ todo });
-      }).catch(err => res.status(400).send(err));
+      try {
+        const todoSaved = await todo.save();
+
+        res.json({ todo: todoSaved });
+      } catch (e) {
+        res.status(400).send(e)
+      }
     });
 
   return router;

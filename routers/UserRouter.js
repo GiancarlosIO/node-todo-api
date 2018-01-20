@@ -10,18 +10,19 @@ const UserRouter = (User) => {
   router.use('/me', AuthenticateMiddleware(User));
 
   router
-    .post('/', (req, res) => {
+    .post('/', async (req, res) => {
       const { body: { email, password } } = req;
 
       const user = new User({ email, password });
 
-      user.save().then(() => user.generateAuthToken()) // it return another promise
-        .then((token) => {
-          res
-            .header('x-auth', token)
-            .send(user.toJSON());
-        })
-        .catch(err => res.status(400).json(err));
+      try {
+        await user.save()
+        const token = await user.generateAuthToken();
+
+        res.header('x-auth', token).send(user.toJSON());
+      } catch (e) {
+        res.status(400).json(e)
+      }
     })
     .get('/me', (req, res) => {
       const { user } = req;
@@ -29,22 +30,25 @@ const UserRouter = (User) => {
 
       res.json(user.toJSON());
     })
-    .delete('/me/token', (req, res) => {
-      req.user.removeToken(req.token).then(() => {
+    .delete('/me/token', async (req, res) => {
+      try {
+        await  req.user.removeToken(req.token);
         res.status(200).send({ message: 'logout successfully' });
-      }).catch(() => res.status(400).send({ error: 'error to logout' }));
+      } catch (e) {
+        res.status(400).send({ error: 'error to logout' });
+      }
     })
-    .post('/login', (req, res) => {
+    .post('/login', async (req, res) => {
       const { body: { email, password } } = req;
 
-      User.findByCredentials(email, password)
-        .then((user) => {
-          return user.generateAuthToken().then((token) => {
-            res.header('x-auth', token).send(user);
-          });
-        }).catch((e) => {
-          res.status(400).send(e);
-        });
+      try {
+        const user = await User.findByCredentials(email, password);
+        const token = await user.generateAuthToken();
+
+        res.header('x-auth', token).send(user);
+      } catch (e) {
+        res.status(400).send(e);
+      }
     });
 
   return router;
